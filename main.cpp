@@ -1,5 +1,3 @@
-
-
 #include <math.h>
 #include <stdio.h>
 
@@ -130,162 +128,105 @@ GLuint textureId;
 
 
 
-//void loadTexture() {
-//    // Wczytaj teksturê z pliku
-//    int width, height, channels;
-//    unsigned char* image = stbi_load("pobrane.png", &width, &height, &channels, STBI_rgb);
-//
-//    // Utwórz identyfikator tekstury
-//    glGenTextures(1, &textureId);
-//
-//    // Ustaw bie¿¹c¹ teksturê
-//    glBindTexture(GL_TEXTURE_2D, textureId);
-//
-//    // Przeka¿ dane tekstury do OpenGL
-//    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-//
-//    //glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, diffuse);
-//    //glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, spec);
-//    //glMateriali(GL_FRONT_AND_BACK, GL_SHININESS, 100);
-//    //glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
-//    // I am cheating by using separate specular color, which requires OpenGL 1.2, but
-//    // it gives nicer specular highlights on textured surfaces.
-//
-//
-//    // Ustaw parametry tekstury
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-//
-//    // Zwalnianie pamiêci zaalokowanej dla wczytanego obrazu
-//    stbi_image_free(image);
-//}
+void loadTexture() {
+    // Wczytaj teksturê z pliku
+    int width, height, channels;
+    unsigned char* image = stbi_load("vtr.bmp", &width, &height, &channels, STBI_rgb);
 
-//void loadTexture() {
-//    //unsigned int texture;
-//    glGenTextures(1, &textureId);
-//    glBindTexture(GL_TEXTURE_2D, textureId);
-//    // set the texture wrapping/filtering options (on the currently bound texture object)
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-//    // load and generate the texture
-//    int width = 64, height =64, channels = 3;
-//    unsigned char* data = stbi_load("bark.png", &width, &height, &channels, STBI_rgb);
-//    if (data)
-//    {
-//        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-//
-//        //glHint(GL_GENERATE_MIPMAP_HINT, GL_FASTEST);//GL_FASTEST);
-//        //glGenerateMipmap(GL_TEXTURE_2D); // Generate mip mapping
-//
-//        //glGenerateMipmap(GL_TEXTURE_2D);
-//    }
-//    else
-//    {
-//        std::cout << "Failed to load texture" << std::endl;
-//    }
-//    stbi_image_free(data);
-//}
-//
-//void loadTexture() {
-//    GLuint loadBMP_custom(const char* imagepath);
-//    GLuint image = loadBMP_custom("./my_texture.bmp");
-//}
+    // Utwórz identyfikator tekstury
+    glGenTextures(1, &textureId);
 
-GLuint texture;
+    // Ustaw bie¿¹c¹ teksturê
+    glBindTexture(GL_TEXTURE_2D, textureId);
 
-GLuint LoadTexture(const char* filename)
-{
-    GLuint texture;
-    int width, height;
-    unsigned char* data;
+    // Przeka¿ dane tekstury do OpenGL
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
 
-    FILE* file;
-    file = fopen(filename, "rb");
+    // Ustaw parametry tekstury
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-    if (file == NULL) return 0;
-    width = 256;
-    height = 256;
-    data = (unsigned char*)malloc(width * height * 3);
-    //int size = fseek(file,);
-    fread(data, width * height * 3, 1, file);
-    fclose(file);
-
-    for (int i = 0; i < width * height; ++i)
-    {
-        int index = i * 3;
-        unsigned char B, R;
-        B = data[index];
-        R = data[index + 2];
-
-        data[index] = R;
-        data[index + 2] = B;
-    }
-
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    gluBuild2DMipmaps(GL_TEXTURE_2D, 3, width, height, GL_RGB, GL_UNSIGNED_BYTE, data);
-    free(data);
-
-    return texture;
+    // Zwalnianie pamiêci zaalokowanej dla wczytanego obrazu
+    stbi_image_free(image);
 }
 
+void drawCube() {
 
-//void display() {
-//    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-//    glLoadIdentity();
-//
-//    // Ustaw pozycjê i orientacjê kamery
-//
-//    // Prze³¹cz siê na tryb modelowania tekstur
-//    glEnable(GL_TEXTURE_2D);
-//
-//    // Przygotuj do u¿ycia teksturê
-//    glBindTexture(GL_TEXTURE_2D, textureId);
-//
-//    // Rysuj szeœcian z wybran¹ tekstur¹
-//    glutSolidCube(1.0);
-//
-//    // Wy³¹cz tryb modelowania tekstur
-//    glDisable(GL_TEXTURE_2D);
-//
-//    glutSwapBuffers();
-//}
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, textureId);
+    glBegin(GL_QUADS);
 
-//int main(int argc, char** argv) {
-//    glutInit(&argc, argv);
-//    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
-//    glutInitWindowSize(800, 600);
-//    glutCreateWindow("Textured Cube");
-//
-//    // Inicjalizuj teksturê
-//    loadTexture();
-//
-//    // Ustawienia OpenGL
-//    glEnable(GL_DEPTH_TEST);
-//    glEnable(GL_LIGHTING);
-//    glEnable(GL_LIGHT0);
-//    glEnable(GL_COLOR_MATERIAL);
-//
-//    // Ustaw funkcje wywo³ane
-//    glutDisplayFunc(display);
-//    glutMainLoop();
-//
-//    return 0;
-//}
+    //front
+    glNormal3f(0.0f, 0.0f, 1.0f);
+    glTexCoord2f(0.0f, 0.0f); //texture coordinate
+    glVertex3f(-0.5f, -0.5f, 0.5f);
+    glTexCoord2f(1.0f, 0.0f);
+    glVertex3f(0.5f, -0.5f, 0.5f);
+    glTexCoord2f(1.0f, 1.0f);
+    glVertex3f(0.5f, 0.5f, 0.5f);
+    glTexCoord2f(0.0f, 1.0f);
+    glVertex3f(-0.5f, 0.5f, 0.5f);
 
+    //right
+    glNormal3f(1.0f, 0.0f, 0.0f);
+    glTexCoord2f(0.0f, 0.0f); //texture coordinates
+    glVertex3f(0.5f, -0.5f, 0.5f);
+    glTexCoord2f(1.0f, 0.0f);
+    glVertex3f(0.5f, -0.5f, -0.5f);
+    glTexCoord2f(1.0f, 1.0f);
+    glVertex3f(0.5f, 0.5f, -0.5f);
+    glTexCoord2f(0.0f, 1.0f);
+    glVertex3f(0.5f, 0.5f, 0.5f);
 
+    //back
+    glNormal3f(0.0f, 0.0f, -1.5f);
+    glTexCoord2f(0.0f, 0.0f); //texture coordinates
+    glVertex3f(-0.5f, -0.5f, -0.5f);
+    glTexCoord2f(1.0f, 0.0f);
+    glVertex3f(0.5f, -0.5f, -0.5f);
+    glTexCoord2f(1.0f, 1.0f);
+    glVertex3f(0.5f, 0.5f, -0.5f);
+    glTexCoord2f(0.0f, 1.0f);
+    glVertex3f(-0.5f, 0.5f, -0.5f);
 
+    //left
+    glNormal3f(-1.0f, 0.0f, 1.0f);
+    glTexCoord2f(0.0f, 0.0f); //texture coordinates
+    glVertex3f(-0.5f, -0.5f, 0.5f);
+    glTexCoord2f(1.0f, 0.0f);
+    glVertex3f(-0.5f, -0.5f, -0.5f);
+    glTexCoord2f(1.0f, 1.0f);
+    glVertex3f(-0.5f, 0.5f, -0.5f);
+    glTexCoord2f(0.0f, 1.0f);
+    glVertex3f(-0.5f, 0.5f, 0.5f);
 
+    //top
+    glNormal3f(0.0f, 1.0f, 0.0f);
+    glTexCoord2f(0.0f, 0.0f); //texture coordinates
+    glVertex3f(-0.5f, 0.5f, 0.5f);
+    glTexCoord2f(1.0f, 0.0f);
+    glVertex3f(0.5f, 0.5f, 0.5f);
+    glTexCoord2f(1.0f, 1.0f);
+    glVertex3f(0.5f, 0.5f, -0.5f);
+    glTexCoord2f(0.0f, 1.0f);
+    glVertex3f(-0.5f, 0.5f, -0.5f);
+
+    //bottom
+    glNormal3f(0.0f, -1.0f, 0.0f);
+    glTexCoord2f(0.0f, 0.0f); //texture coordinates
+    glVertex3f(-0.5f, -0.5f, 0.5f);
+    glTexCoord2f(1.0f, 0.0f);
+    glVertex3f(0.5f, -0.5f, 0.5f);
+    glTexCoord2f(1.0f, 1.0f);
+    glVertex3f(0.5f, -0.5f, -0.5f);
+    glTexCoord2f(0.0f, 1.0f);
+    glVertex3f(-0.5f, -0.5f, -0.5f);
+
+    glEnd();
+    glDisable(GL_TEXTURE_2D);
+}
 
 
 //inicjacja parametrów
@@ -304,171 +245,22 @@ void Init()
     glMaterialf(GL_FRONT, GL_SHININESS, 90.0f);
 
     //utworzenie listy wyœwietlania kwadratowych obiektów
-    //glNewList(1, GL_COMPILE);
-    //for (int i = 0; i < MAX; i++) {
-    //    for (int j = 0; j < MAX; j++) {
-    //        if (Map[i][j] == 0) {
-    //            glLoadIdentity();
-    //            glTranslatef(((MAX - 1) / 2) - i, j - ((MAX - 1) / 2), 0.5f);
-    //            //glTranslatef(j, i, 0.5f);
-    //            //glTranslatef(i - 11.5, j - 11.5, 0.5);
-    //            //glutSolidCube(1.0);
-    //            //glutWireCube(1);
-    //            //glLoadIdentity();
-    //            //glTranslatef(-11.5f + j, -11.5f + i, 1.5f);
-    //            //glutSolidCube(1.0);
-
-    //            //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    //            //glLoadIdentity();
-    //           
-    //            ////glLoadIdentity();
-
-    //            // Ustaw pozycjê i orientacjê kamery
-
-    //            // Prze³¹cz siê na tryb modelowania tekstur
-    //            glEnable(GL_TEXTURE_2D);
-
-    //            // Przygotuj do u¿ycia teksturê
-    //            glBindTexture(GL_TEXTURE_2D, textureId);
-
-    //            // Rysuj szeœcian z wybran¹ tekstur¹
-    //            glutSolidCube(1.0);
-
-    //            // Wy³¹cz tryb modelowania tekstur
-    //            glDisable(GL_TEXTURE_2D);
-
-    //            //glutSwapBuffers();
-
-    //        }
-    //    }
-    //}
-    //glEndList();
-
     glNewList(1, GL_COMPILE);
-    //for (int i = 0; i < MAX; i++) {
-    //    for (int j = 0; j < MAX; j++) {
-    //        if (Map[i][j] == 0) {
-    //            glLoadIdentity();
-    //            glTranslatef(((MAX - 1) / 2) - i, j - ((MAX - 1) / 2), 0.5f);
-
-    glNormal3f(0.0f, 0.0f, 1.0f);
-
     for (int i = 0; i < MAX; i++) {
         for (int j = 0; j < MAX; j++) {
             if (Map[i][j] == 0) {
-                float x = (((MAX - 1) / 2) -i) * 1.0f;
-                float y = (i - ((MAX - 1) / 2)) * 1.0f;
 
+                glLoadIdentity();
+                glTranslatef(((MAX - 1) / 2) - i, j - ((MAX - 1) / 2), 0.5f);
+                drawCube();
 
-            glEnable(GL_TEXTURE_2D);
-
-            // Przygotuj do u¿ycia teksturê
-            glBindTexture(GL_TEXTURE_2D, texture);
-
-            // Rysuj szeœcian z wybran¹ tekstur¹
-
-                glTexCoord2f(0.0f, 0.0f); // wspó³rzêdne tekstury
-                glVertex3f(x - 1.0f, y - 1.0f, 1.0f);
-                glTexCoord2f(1.0f, 0.0f);
-                glVertex3f(x + 1.0f, y - 1.0f, 1.0f);
-                glTexCoord2f(1.0f, 1.0f);
-                glVertex3f(x + 1.0f, y + 1.0f, 1.0f);
-                glTexCoord2f(0.0f, 1.0f);
-                glVertex3f(x - 1.0f, y + 1.0f, 1.0);
-
-                            // Wy³¹cz tryb modelowania tekstur
-            glDisable(GL_TEXTURE_2D);
+                glLoadIdentity();
+                glTranslatef(((MAX - 1) / 2) - i, j - ((MAX - 1) / 2), 1.5f);
+                drawCube();
             }
         }
     }
-
-
-    //            // Prze³¹cz siê na tryb modelowania tekstur
-    //            glEnable(GL_TEXTURE_2D);
-
-    //            // Przygotuj do u¿ycia teksturê
-    //            glBindTexture(GL_TEXTURE_2D, texture);
-
-    //            // Rysuj szeœcian z wybran¹ tekstur¹
-    //            //glutSolidCube(1.0);
-
-    //            /// XXDDD
-
-    //                //front
-    //            glNormal3f(0.0f, 0.0f, 1.0f);
-    //            glTexCoord2f(0.0f, 0.0f); //texture coordinate
-    //            glVertex3f(-1.0f, -1.0f, 0.0f);
-    //            glTexCoord2f(1.0f, 0.0f);
-    //            glVertex3f(1.0f, -1.0f, 0.0f);
-    //            glTexCoord2f(1.0f, 1.0f);
-    //            glVertex3f(1.0f, 1.0f, 0.0f);
-    //            glTexCoord2f(0.0f, 1.0f);
-    //            glVertex3f(-1.0f, 1.0f, 0.0f);
-
-    //            //right
-    //            glNormal3f(1.0f, 0.0f, 0.0f);
-    //            glTexCoord2f(0.0f, 0.0f); //texture coordinates
-    //            glVertex3f(1.0f, -1.0f, 0.0f);
-    //            glTexCoord2f(1.0f, 0.0f);
-    //            glVertex3f(1.0f, -1.0f, -1.5f);
-    //            glTexCoord2f(1.0f, 1.0f);
-    //            glVertex3f(1.0f, 1.0f, -1.5f);
-    //            glTexCoord2f(0.0f, 1.0f);
-    //            glVertex3f(1.0f, 1.0f, 0.0f);
-
-    //            //back
-    //            glNormal3f(0.0f, 0.0f, -1.5f);
-    //            glTexCoord2f(0.0f, 0.0f); //texture coordinates
-    //            glVertex3f(-1.0f, -1.0f, -1.5f);
-    //            glTexCoord2f(1.0f, 0.0f);
-    //            glVertex3f(1.0f, -1.0f, -1.5f);
-    //            glTexCoord2f(1.0f, 1.0f);
-    //            glVertex3f(1.0f, 1.0f, -1.5f);
-    //            glTexCoord2f(0.0f, 1.0f);
-    //            glVertex3f(-1.0f, 1.0f, -1.5f);
-
-    //            //left
-    //            glNormal3f(-1.0f, 0.0f, 1.0f);
-    //            glTexCoord2f(0.0f, 0.0f); //texture coordinates
-    //            glVertex3f(-1.0f, -1.0f, 0.0f);
-    //            glTexCoord2f(1.0f, 0.0f);
-    //            glVertex3f(-1.0f, -1.0f, -1.5f);
-    //            glTexCoord2f(1.0f, 1.0f);
-    //            glVertex3f(-1.0f, 1.0f, -1.5f);
-    //            glTexCoord2f(0.0f, 1.0f);
-    //            glVertex3f(-1.0f, 1.0f, 0.0f);
-
-    //            //top
-    //            glNormal3f(0.0f, 1.0f, 0.0f);
-    //            glTexCoord2f(0.0f, 0.0f); //texture coordinates
-    //            glVertex3f(-1.0f, 1.0f, 0.0f);
-    //            glTexCoord2f(1.0f, 0.0f);
-    //            glVertex3f(1.0f, 1.0f, 0.0f);
-    //            glTexCoord2f(1.0f, 1.0f);
-    //            glVertex3f(1.0f, 1.0f, -1.5f);
-    //            glTexCoord2f(0.0f, 1.0f);
-    //            glVertex3f(-1.0f, 1.0f, -1.5f);
-
-    //            //bottom
-    //            glNormal3f(0.0f, -1.0f, 0.0f);
-    //            glTexCoord2f(0.0f, 0.0f); //texture coordinates
-    //            glVertex3f(-1.0f, -1.0f, 0.0f);
-    //            glTexCoord2f(1.0f, 0.0f);
-    //            glVertex3f(1.0f, -1.0f, 0.0f);
-    //            glTexCoord2f(1.0f, 1.0f);
-    //            glVertex3f(1.0f, -1.0f, -1.5f);
-    //            glTexCoord2f(0.0f, 1.0f);
-    //            glVertex3f(-1.0f, -1.0f, -1.5f);
-
-
-
-    //            // Wy³¹cz tryb modelowania tekstur
-    //            glDisable(GL_TEXTURE_2D);
-    //        }
-    //    }
-    //}
     glEndList();
-
 }
 
 //resetowanie widoku kamery i projekcji na scenie
@@ -491,12 +283,9 @@ void Reload_TableView()
 
     //ustawienie pozycji kamery i kierunku patrzenia na scenê
 
-    //printf("map: %d\n", Map[int(ceil(x)) + 12][int(ceil(z)) + 12]);
-
-    //if (Map[int(ceil(x)) + 12][int(ceil(z)) + 12] == 1) {
-        gluLookAt(x, y, z,
-            x + lx, 1.0f, z + lz,
-            0.0f, 1.0f, 0.0f);
+    gluLookAt(x, y, z,
+        x + lx, 1.0f, z + lz,
+        0.0f, 1.0f, 0.0f);
  
     glRotatef(-90.0f, 1.0f, 0.0f, 0.0f); //obrócenie widoku o 90 stopni wokó³ osi X
     glMatrixMode(GL_MODELVIEW);
@@ -536,21 +325,19 @@ bool isWall(float valX, float valZ)
     //int wallX = int(11.5 - valX);
     //int wallZ = int(-11.5 + valZ);
 
-    if (wallX == 11) {
-        wallX2 = wallX;
-        //wallX += 1;
-    }
+    //if (wallX == 11) {
+    //    wallX2 = wallX;
+    //    //wallX += 1;
+    //}
     //if (wallZ > 12) {
     //    wallZ += 1;
     //}
 
     printf("valX: %d, valZ: %d, map: %d, valX: %d\n", wallX, wallZ, Map[wallX][wallZ], int(valX));
-    //if (int(wallX) != 11) {
-        if (Map[wallX][wallZ] == 0 || Map[wallX2][wallZ2] == 0)
-        {
-            return FALSE;
-        }
-    //}
+    if (Map[wallX][wallZ] == 0 || Map[wallX2][wallZ2] == 0)
+    {
+        return FALSE;
+    }
 }
 
 
@@ -585,8 +372,6 @@ void processSpecialKeys(int key, int xx, int yy) {
             }
             break;
         }
-
-
     printf("x: %f, z: %f, lx: %f, lz: %f map: %d\n", x, z, lx, lz, Map[int(ceil(x))+12][int(ceil(z))+12]);
 }
 
@@ -630,7 +415,6 @@ int main(int argc, char** argv)
         printf("\n");
     }
 
-
     // Tworzenie okna
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH | GLUT_DOUBLE);
@@ -639,8 +423,7 @@ int main(int argc, char** argv)
     glutCreateWindow("Labirynt");
 
     // Inicjalizuj teksturê
-    //loadTexture();
-    texture = LoadTexture("vtr.bmp");
+    loadTexture();
 
     // Wyœwietlanie
     glutDisplayFunc(Display);
