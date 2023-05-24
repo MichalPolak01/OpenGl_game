@@ -28,10 +28,13 @@ void Init();
 void processSpecialKeys(int, int, int);
 void Keyboard(GLubyte , int , int );
 
-void loadTexture(const string&, GLuint&);
+
+void startGame(int);
 void drawCube();
 void drawGround(GLuint&);
-void startGame(int);
+void drawCircle(float, int);
+void loadTexture(const string&, GLuint&);
 void showNotification(float, float, string);
+void information();
 
 #endif // !LABIRYNTH_H

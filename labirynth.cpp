@@ -3,7 +3,7 @@
  * \brief  Przechowuje funkcje oraz zmienne u¿ywane do rysowania labiryntu.
  * 
  * \author Micha³ Polak
- * \date   May 2023
+ * \date   April 2023
  *********************************************************************/
 
 #include "labirynth.h"
@@ -11,6 +11,11 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
+
+/**
+ * \brief Ustawienie sta³ej PI.
+ */
+#define PI  3.14159265359f
 
 /**
  * \brief Ustawienie pozycji œwiat³a w przestrzeni 3D.
@@ -73,6 +78,8 @@ float tempX, tempZ, tempY, tempLx, tempLz;
 int MAX;
 int **Map;
 
+string mapName;
+
 /**
  * \brief Uruchomienie gry.
  * 
@@ -105,6 +112,7 @@ void startGame(int level) {
         lx = 0.00f, lz = 1.0f;
 
         mapFileName = "map33.txt";
+        mapName = "Mapa 1";
         break;
     case 2:
         MAX = 33;
@@ -118,6 +126,7 @@ void startGame(int level) {
         lx = 0.00f, lz = 1.0f;
 
         mapFileName = "map33v2.txt";
+        mapName = "Mapa 2";
         break;
     case 3:
         MAX = 43;
@@ -131,6 +140,7 @@ void startGame(int level) {
         lx = 0.00f, lz = 1.0f;
 
         mapFileName = "map43.txt";
+        mapName = "Mapa 3";
         break;
     case 4:
         MAX = 63;
@@ -144,6 +154,7 @@ void startGame(int level) {
         lx = 0.00f, lz = 1.0f;
 
         mapFileName = "map63.txt";
+        mapName = "Mapa 4";
         break;
     }
 
@@ -263,11 +274,24 @@ void Display()
     glCallList(1); //wywo³anie listy rysunkowej sk³adaj¹cej siê z kostek na mapie gry
     glDisable(GL_LIGHTING); //wy³¹czenie oœwietlenie
 
-    Reload_TextView(); //ustawienie perspektywy do wyœwietlenia tekstu
-    glColor3f(1.0f, 1.0f, 1.0f); //ustawienie koloru tekstu na bia³y
-    showNotification(10.0f, 10.0f, "m - mapa");
+    if (mapFlag == 1)
+    {
+        glColor3f(0.0f, 0.0f, 1.0f); // Ustawia kolor na niebieski
+        glLoadIdentity();
+        glTranslatef(tempX, -tempZ, 0.45f);
+
+        // Rysowanie ko³a
+        drawCircle(0.5f, 100);
+
+        glFlush();
+    }
+
+    information();
     glutSwapBuffers(); //podmienienie buforów
 }
+
+
+
 
 /**
  * \brief Sprawdzanie czy kamera nie wchodzi w œcianê.
@@ -341,8 +365,6 @@ void processSpecialKeys(int key, int xx, int yy) {
 
     printf("x: %f, z: %f, lx: %f, lz: %f map: %d\n", x, z, lx, lz, Map[int(ceil(x)) + 12][int(ceil(z)) + 12]);
 }
-
-
 
 /**
  * \brief Obs³uga wciœniêtych klawiszy.
@@ -511,7 +533,7 @@ void drawCube() {
     glDisable(GL_TEXTURE_2D);
 }
 
-// Funkcja rysuj¹ca pod³o¿e
+// Rysowanie pod³o¿e
 /**
  * \brief Rysowanie pod³o¿a.
  * 
@@ -536,6 +558,25 @@ void drawGround(GLuint &texture)
     // Zakoñczenie nak³adania tekstury
     glEnd();
     glDisable(GL_TEXTURE_2D);
+}
+/**
+ * \brief Rysowanie okrêgu.
+ * 
+ * \param radius - Promieñ okrêgu.
+ * \param segments - Iloœæ segmentów, na które podzielone jest ko³o.
+ */
+void drawCircle(float radius, int segments)
+{
+    glLineWidth(3.5f); // Ustawienie gruboœci linii
+    glBegin(GL_LINE_LOOP); // Rysowanie linii
+    for (int i = 0; i < segments; i++)
+    {
+        float theta = 2.0f * PI * static_cast<float>(i) / static_cast<float>(segments);
+        float x = radius * cos(theta);
+        float y = radius * sin(theta);
+        glVertex2f(x, y);
+    }
+    glEnd();
 }
 
 /**
@@ -570,13 +611,38 @@ void loadTexture(const string &fileName, GLuint &texture) {
     stbi_image_free(image);
 }
 
+/**
+ * \brief Informacje do wyœwietlenia.
+ * 
+ */
+void information()
+{
+    Reload_TextView(); //ustawienie perspektywy do wyœwietlenia tekstu
+    glLoadIdentity();
+    glColor3f(1.0f, 1.0f, 1.0f); //ustawienie koloru tekstu na bia³y
+    showNotification(-0.98f, 0.95f, "m - mapa");
+    showNotification(-0.98f, 0.90f, "1 - zmiana mapy na 1");
+    showNotification(-0.98f, 0.85f, "2 - zmiana mapy na 2");
+    showNotification(-0.98f, 0.80f, "3 - zmiana mapy na 3");
+    showNotification(-0.98f, 0.75f, "4 - zmiana mapy na 4");
+    glColor3f(1.0f, 0.0f, 0.0f); //ustawienie koloru tekstu na bia³y
+    showNotification(0.0f, 0.9f, mapName);
+}
+
+/**
+ * \brief Poka¿ informacje.
+ * 
+ * \param x - Wspó³rzêdna x.
+ * \param y - Wspó³rzêdna y. 
+ * \param text - Tekst.
+ */
 void showNotification(float x, float y, string text)
 {
     glRasterPos2f(x, y);
     const char* txt = text.c_str();
     while (*txt != 0)
     {
-        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, *txt);
+        glutBitmapCharacter(GLUT_BITMAP_9_BY_15, *txt);
         txt++;
     }
 }
