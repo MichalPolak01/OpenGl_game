@@ -1,0 +1,6 @@
+Instrukcja kompilacji:
+Grę można skompilować za pomocą środowiska Visual Studio 2022, klikając przycisk podpisany jako “Lokalny debuger Windows” w górnym menu, oznaczony dodatkowo zieloną strzałką. 
+Do poprawnego działania projektu wymagane są biblioteki Glew, Glut oraz STB. Aby zlokalizować wszystkie niezbędne pliki, należy wejść do menu “Właściwości”. Pliki include oraz plik nagłówkowy biblioteki STB, stb_image.h, należy umieścić w podkatalogu o nazwie “Ogólne” w stronie właściwości “C/C++”.
+W sekcji Konsolidator/Ogólne należy umieścić pliki .lib bibliotek Glut i Glew.
+Podobnie należy postąpić w podkatalogu “Dane wejściowe”, wpisując jako dodatkowe zależności “freeglut.lib” i “glew32.lib”.
+Po przedstawionym powyżej procesie zlokalizowania plików we właściwościach projektu, gra powinna uruchomić się poprawnie.

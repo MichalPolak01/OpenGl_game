@@ -15,6 +15,8 @@
 
 using namespace std;
 
-bool ReadMapFromFile(const string&, int, int**);
+bool readMapFromFile(const string&, int, int**);
+bool readResultsFromFile(const string& , int , int*);
+bool writeResultsToFile(const string& , int , const int*);
 
 #endif // MAP_H

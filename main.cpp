@@ -25,7 +25,7 @@ int main(int argc, char** argv)
     glutCreateWindow("Labirynt");
 
     // Uruchomienie gry
-    startGame(1);
+    startGame();
 
     // Pêtla przetwarzania wydarzeñ GLUT
     glutMainLoop();

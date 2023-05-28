@@ -45,7 +45,7 @@ GLfloat Specular[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 /**
  * \brief Identyfikatory tekstur.
  */
-GLuint textureBox, textureGround, textureFinish;
+GLuint textureBox, textureGround, textureStart, textureFinish;
 
 /**
  * \brief Zmienna informuj¹ca czy klawisz m jest wciœniêty.
@@ -63,7 +63,7 @@ float angle = 3.0f;
 float lx = 0.00f, lz = 1.0f;
 
 /**
- * \brief Zmienne reprezentuj¹ce pozycjê kamery.
+ * \brief Zmienne reprezentuj¹ce pozycjê kamery w 3D.
  */
 float x = -10.0f, y = 1.0f, z = 1.0f;
 
@@ -71,21 +71,36 @@ float x = -10.0f, y = 1.0f, z = 1.0f;
  * \brief Zmienne pomocnicze do kamery.
  */
 float tempX, tempZ, tempY, tempLx, tempLz;
+bool blockCamera = false;
 
 /**
  * \brief Zmienne dotycz¹ce mapy.
  */
 int MAX;
 int **Map;
-
 string mapName;
+
+/**
+ * \brief Zmienne dotycz¹ce odliczania czasu i wyników.
+ */
+int Result[4];
+int theBestOnTheMap;
+int mapTime = 0;
+int endTime;
+static bool timerRunning = false;
+
+/**
+ * \brief Numer mapy.
+ * 
+ */
+int level = 1;
 
 /**
  * \brief Uruchomienie gry.
  * 
  * \param level - Poziom w grze.
  */
-void startGame(int level) {
+void startGame() {
     // Odczytanie tekstur z plików
     string fileName = "vtr.bmp";
     loadTexture(fileName, textureBox);
@@ -93,8 +108,14 @@ void startGame(int level) {
     string fileName2 = "grass.png";
     loadTexture(fileName2, textureGround);
 
-    string fileName3 = "finish.png";
-    loadTexture(fileName3, textureFinish);
+    string fileName3 = "start.png";
+    loadTexture(fileName3, textureStart);
+
+    string fileName4 = "finish.png";
+    loadTexture(fileName4, textureFinish);
+
+    // Odczytanie wyników z pliku
+    readResultsFromFile("theBestTimes.txt", 4, Result);
 
     // Wybór mapy
     string mapFileName;
@@ -113,6 +134,9 @@ void startGame(int level) {
 
         mapFileName = "map33.txt";
         mapName = "Mapa 1";
+        theBestOnTheMap = Result[0];
+        mapTime = 0;
+        blockCamera = false;
         break;
     case 2:
         MAX = 33;
@@ -127,6 +151,9 @@ void startGame(int level) {
 
         mapFileName = "map33v2.txt";
         mapName = "Mapa 2";
+        theBestOnTheMap = Result[1];
+        mapTime = 0;
+        blockCamera = false;
         break;
     case 3:
         MAX = 43;
@@ -141,6 +168,9 @@ void startGame(int level) {
 
         mapFileName = "map43.txt";
         mapName = "Mapa 3";
+        theBestOnTheMap = Result[2];
+        mapTime = 0;
+        blockCamera = false;
         break;
     case 4:
         MAX = 63;
@@ -155,11 +185,39 @@ void startGame(int level) {
 
         mapFileName = "map63.txt";
         mapName = "Mapa 4";
+        theBestOnTheMap = Result[3];
+        mapTime = 0;
+        blockCamera = false;
         break;
     }
 
+    // Uruchomienie odliczania czasu
+    if (!timerRunning)
+    {
+        timer(0);
+    }
+
     // Odczytanie mapy z pliku
-    ReadMapFromFile(mapFileName, MAX, Map);
+    readMapFromFile(mapFileName, MAX, Map);
+
+    // Information
+    printf(" +------------+\n |  LABIRYNT  |\n +------------+\n");
+
+    for (int i = 0; i < MAX; i++)
+    {
+        for (int j = 0; j < MAX; j++)
+        {
+            if (Map[i][j] == 0)
+            {
+                printf("* ");
+            }
+            else
+            {
+                printf("  ");
+            }
+        }
+        printf("\n");
+    }
 
     // Wyœwietlanie
     glutDisplayFunc(Display);
@@ -170,9 +228,10 @@ void startGame(int level) {
     glutSpecialFunc(processSpecialKeys);
     glutKeyboardFunc(Keyboard);
 
-    // inicjalizacja testu g³êbokoœci OpenGL 
+    // inicjalizacja testu g³êbokoœci OpenGL
     glEnable(GL_DEPTH_TEST);
 }
+
 
 /**
  * \brief Inicjalizacja parametrów.
@@ -192,7 +251,7 @@ void Init()
     glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, Specular);
     glMaterialf(GL_FRONT, GL_SHININESS, 90.0f);
 
-    //utworzenie listy wyœwietlania kwadratowych obiektów
+    //Wyœwietlanie tekstur na mapie
     glNewList(1, GL_COMPILE);
     for (int i = 0; i < MAX; i++) {
         for (int j = 0; j < MAX; j++) {
@@ -218,12 +277,20 @@ void Init()
                 glLoadIdentity();
                 glTranslatef(((MAX - 1.0f) / 2.0f) - i, j - ((MAX - 1.0f) / 2.0f), -0.5f);
 
+                drawGround(textureStart);
+            }
+            else if (Map[i][j] == 5)
+            {
+                glLoadIdentity();
+                glTranslatef(((MAX - 1.0f) / 2.0f) - i, j - ((MAX - 1.0f) / 2.0f), -0.5f);
+
                 drawGround(textureFinish);
             }
         }
     }
     glEndList();
 }
+
 
 /**
  * \brief Resetowanie widoku kamery i projekcji na scenie.
@@ -235,6 +302,7 @@ void Reload_TextView()
     glLoadIdentity();
     glMatrixMode(GL_MODELVIEW);
 }
+
 
 /**
  * \brief Aktualizowanie widoku kamery i projekcji na scenie.
@@ -260,6 +328,7 @@ void Reload_TableView()
     glMatrixMode(GL_MODELVIEW);
 }
 
+
 /**
  * \brief Wyœwietlanie grafiki.
  * 
@@ -274,6 +343,7 @@ void Display()
     glCallList(1); //wywo³anie listy rysunkowej sk³adaj¹cej siê z kostek na mapie gry
     glDisable(GL_LIGHTING); //wy³¹czenie oœwietlenie
 
+    // Wyœwietlanie punktu na mapie z góry.
     if (mapFlag == 1)
     {
         glColor3f(0.0f, 0.0f, 1.0f); // Ustawia kolor na niebieski
@@ -291,6 +361,37 @@ void Display()
 }
 
 
+/**
+ * \brief Odliczanie czasu.
+ * 
+ * \param value - Informacja o stanie timera.
+ */
+ void timer(int value) {
+    int fieldX = static_cast<int>(-x + ((MAX - 1) / 2));
+    int fieldZ = static_cast<int>(-z + ((MAX - 1) / 2));
+
+    if (value == 0) {
+        mapTime += 1;
+        glutPostRedisplay();
+
+        if (Map[fieldX][fieldZ] == 4 && !timerRunning) {
+            timerRunning = true;
+            glutTimerFunc(1000, timer, 0);
+        }
+        else if (Map[fieldX][fieldZ] == 5 && timerRunning) {
+            timerRunning = false;
+            glutTimerFunc(1000, timer, 1);
+        }
+        else {
+            glutTimerFunc(1000, timer, 0);
+        }
+    }
+    else if (value == 1) {
+        endTime = mapTime;
+        blockCamera = true;
+        
+    }
+}
 
 
 /**
@@ -302,27 +403,37 @@ void Display()
  */
 bool isWall(float valX, float valZ)
 {
-    int wallX0 = static_cast<int>(-valX + ((MAX - 1) / 2));
-    int wallZ0 = static_cast<int>(-valZ + ((MAX - 1) / 2));
+    int wallX = static_cast<int>(-valX + ((MAX - 1) / 2));
+    int wallZ = static_cast<int>(-valZ + ((MAX - 1) / 2));
 
-    int wallX = static_cast<int>(-valX + ((MAX - 1) / 2) - 0.15);
-    int wallZ = static_cast<int>(-valZ + ((MAX - 1) / 2) - 0.15);
+    int wallX1 = static_cast<int>(-valX + ((MAX - 1) / 2) - 0.15);
+    int wallZ1 = static_cast<int>(-valZ + ((MAX - 1) / 2) - 0.15);
 
     int wallX2 = static_cast<int>(-valX + ((MAX - 1) / 2) + 1.15);
     int wallZ2 = static_cast<int>(-valZ + ((MAX - 1) / 2) + 1.15);
 
-    printf("valX: %d, valZ: %d, map: %d, valX: %d\n", wallX, wallZ, Map[wallX][wallZ], int(valX));
-
-    if (Map[wallX][wallZ] == 0 || Map[wallX2][wallZ] == 0 || Map[wallX][wallZ2] == 0 || Map[wallX2][wallZ2] == 0 ||
-        Map[wallX0][wallZ0] == 0 || Map[wallX0][wallZ0 + 1] == 0 || Map[wallX0 + 1][wallZ0] == 0 || Map[wallX0 + 1][wallZ0 + 1] == 0)
+    if (Map[wallX1][wallZ1] == 0 || Map[wallX2][wallZ1] == 0 || Map[wallX1][wallZ2] == 0 || Map[wallX2][wallZ2] == 0 ||
+        Map[wallX][wallZ] == 0 || Map[wallX][wallZ + 1] == 0 || Map[wallX + 1][wallZ] == 0 || Map[wallX + 1][wallZ + 1] == 0)
     {
         return FALSE;
     }
     return TRUE;
 }
 
+
 /**
 * \brief Obs³uga specjalnych klawiszy.
+* 
+*   Lista zdarzeñ:
+*       - Zdarzenia klawiatury:
+*           -# Strza³ka w lewo \n
+*               Obrót kamery w lew¹ stronê.
+*           -# Strza³ka w prawo \n
+*               Obrót kamery w praw¹ stronê.
+*           -# Strza³ka w dó³ \n
+*               Przesuniêcie kamery do ty³u.
+*           -# Strza³ka w górê \n
+*               Przesuniêcie kamery w przód.
 *
 * \param key - kod wciœniêtego klawisza specjalnego.
 * \param xx  - pozycja kursora myszy w osi X.
@@ -338,36 +449,52 @@ void processSpecialKeys(int key, int xx, int yy) {
                 angle -= 0.1f;
                 lx = sin(angle);
                 lz = -cos(angle);
-                printf("key left\n");
                 break;
             case GLUT_KEY_RIGHT:
                 angle += 0.1f;
                 lx = sin(angle);
                 lz = -cos(angle);
-                printf("key right\n");
                 break;
             case GLUT_KEY_UP:
-                if (isWall(x + lx * 0.1f, z + lz * 0.1f)) {
-                    x += lx * 0.1f;
-                    z += lz * 0.1f;
-                    printf("key up\n");
+                if (!blockCamera)
+                {
+                    if (isWall(x + lx * 0.1f, z + lz * 0.1f)) {
+                        x += lx * 0.1f;
+                        z += lz * 0.1f;
+                    }
                 }
                 break;
             case GLUT_KEY_DOWN:
-                if (isWall(x - lx * 0.1f, z - lz * 0.1f)) {
-                    x -= lx * 0.1f;
-                    z -= lz * 0.1f;
-                    printf("key down\n");
+                if (!blockCamera)
+                {
+                    if (isWall(x - lx * 0.1f, z - lz * 0.1f)) {
+                        x -= lx * 0.1f;
+                        z -= lz * 0.1f;
+                    }
                 }
                 break;
         }
     }
-
-    printf("x: %f, z: %f, lx: %f, lz: %f map: %d\n", x, z, lx, lz, Map[int(ceil(x)) + 12][int(ceil(z)) + 12]);
 }
+
 
 /**
  * \brief Obs³uga wciœniêtych klawiszy.
+ * 
+ *  Lista zdarzeñ:
+ *      - Zdarzenia klawiatury:
+ *          -# Klawisz 'm' \n
+ *              Wyœwietlenie mapy z góry.
+ *          -# Klawisz 'x' \n
+ *              Zakoñczenie dzia³ania programu.
+ *          -# Klawisz '1' \n
+ *              Prze³¹czenie na mapê 1.
+ *          -# Klawisz '2' \n
+ *              Prze³¹czenie na mapê 2.
+ *          -# Klawisz '3' \n
+ *              Prze³¹czenie na mapê 3.
+ *          -# Klawisz '4' \n
+ *              Prze³¹czenie na mapê 4.
  * 
 * \param key - kod wciœniêtego klawisza.
 * \param xx  - pozycja kursora myszy w osi X.
@@ -393,7 +520,6 @@ void Keyboard(GLubyte key, int xx, int yy)
             x = 0.0f;
             z = 0.0f;
 
-            printf("key m\n");
             mapFlag = 1;
         }
         else {
@@ -403,10 +529,14 @@ void Keyboard(GLubyte key, int xx, int yy)
             lx = tempLx;
             lz = tempLz;
 
-            printf("key m\n");
             mapFlag = 0;
         }
         break;
+        // Wciœniêcie x - koniec gry.
+    case 'x':
+        glutDestroyWindow(glutGetWindow());
+        break;
+        // Zmiana mapy na 1
     case '1':
         if (mapFlag != 1)
         {
@@ -414,10 +544,11 @@ void Keyboard(GLubyte key, int xx, int yy)
                 delete[] Map[i];
 
             delete[] Map;
-            startGame(1);
+            level = 1;
+            startGame();
         }
-        
         break;
+        // Zmiana mapy na 2
     case '2':
         if (mapFlag != 1)
         {
@@ -425,9 +556,11 @@ void Keyboard(GLubyte key, int xx, int yy)
                 delete[] Map[i];
 
             delete[] Map;
-            startGame(2);
+            level = 2;
+            startGame();
         }
         break;
+        // Zmiana mapy na 3
     case '3':
         if (mapFlag != 1)
         {
@@ -435,9 +568,11 @@ void Keyboard(GLubyte key, int xx, int yy)
                 delete[] Map[i];
 
             delete[] Map;
-            startGame(3);
+            level = 3;
+            startGame();
         }
         break;
+        // Zmiana mapy na 4
     case '4':
         if (mapFlag != 1)
         {
@@ -445,11 +580,13 @@ void Keyboard(GLubyte key, int xx, int yy)
                 delete[] Map[i];
 
             delete[] Map;
-            startGame(4);
+            level = 4;
+            startGame();
         }
         break;
     }
 }
+
 
 /**
  * \brief Rysowanie szeœcianu.
@@ -533,6 +670,7 @@ void drawCube() {
     glDisable(GL_TEXTURE_2D);
 }
 
+
 // Rysowanie pod³o¿e
 /**
  * \brief Rysowanie pod³o¿a.
@@ -559,6 +697,8 @@ void drawGround(GLuint &texture)
     glEnd();
     glDisable(GL_TEXTURE_2D);
 }
+
+
 /**
  * \brief Rysowanie okrêgu.
  * 
@@ -578,6 +718,7 @@ void drawCircle(float radius, int segments)
     }
     glEnd();
 }
+
 
 /**
  * \brief Wczytywanie tekstur.
@@ -611,6 +752,7 @@ void loadTexture(const string &fileName, GLuint &texture) {
     stbi_image_free(image);
 }
 
+
 /**
  * \brief Informacje do wyœwietlenia.
  * 
@@ -620,14 +762,41 @@ void information()
     Reload_TextView(); //ustawienie perspektywy do wyœwietlenia tekstu
     glLoadIdentity();
     glColor3f(1.0f, 1.0f, 1.0f); //ustawienie koloru tekstu na bia³y
-    showNotification(-0.98f, 0.95f, "m - mapa");
-    showNotification(-0.98f, 0.90f, "1 - zmiana mapy na 1");
-    showNotification(-0.98f, 0.85f, "2 - zmiana mapy na 2");
-    showNotification(-0.98f, 0.80f, "3 - zmiana mapy na 3");
-    showNotification(-0.98f, 0.75f, "4 - zmiana mapy na 4");
-    glColor3f(1.0f, 0.0f, 0.0f); //ustawienie koloru tekstu na bia³y
-    showNotification(0.0f, 0.9f, mapName);
+    showNotification(-0.98f, 0.95f, "m - mapa", GLUT_BITMAP_HELVETICA_10);
+    showNotification(-0.98f, 0.90f, "x - koniec gry", GLUT_BITMAP_HELVETICA_10);
+    showNotification(-0.98f, 0.85f, "1 - zmiana mapy na 1", GLUT_BITMAP_HELVETICA_10);
+    showNotification(-0.98f, 0.80f, "2 - zmiana mapy na 2", GLUT_BITMAP_HELVETICA_10);
+    showNotification(-0.98f, 0.75f, "3 - zmiana mapy na 3", GLUT_BITMAP_HELVETICA_10);
+    showNotification(-0.98f, 0.70f, "4 - zmiana mapy na 4", GLUT_BITMAP_HELVETICA_10);
+    glColor3f(1.0f, 0.0f, 0.0f); //ustawienie koloru tekstu na czerwony
+    showNotification(0.0f, 0.9f, mapName, GLUT_BITMAP_HELVETICA_18);
+    string timeBest = to_string(theBestOnTheMap);
+    showNotification(0.0f, 0.83f, "Najlepszy wynik na tej mapie: " + timeBest + "s" , GLUT_BITMAP_HELVETICA_18);
+    string timeStr = to_string(mapTime);
+    showNotification(0.0f, 0.75f, "Czas: " + timeStr + "s", GLUT_BITMAP_HELVETICA_18);
+    glColor3f(1.0f, 0.0f, 1.0f);
+    string timeEnd = to_string(endTime);
+    int timeToBeat = theBestOnTheMap - endTime;
+    string toBeat = to_string(timeToBeat);
+
+    if (endTime != 0 && !timerRunning)
+    {
+        string notification;
+        if (endTime < theBestOnTheMap)
+        {
+            notification = "Ustanowiles nowy rekord: " + timeEnd + "s";
+            Result[level - 1] = endTime;
+            writeResultsToFile("theBestTimes.txt", 4, Result);
+        }
+        else
+        {
+            notification = "Do ustanowienia rekordu brakuje: " + toBeat + "s";
+        }
+        showNotification(-0.2f, 0.0f, notification, GLUT_BITMAP_TIMES_ROMAN_24);
+        showNotification(-0.2f, -0.1f, "Aby kontynuowac wybierz mape", GLUT_BITMAP_TIMES_ROMAN_24);
+    }
 }
+
 
 /**
  * \brief Poka¿ informacje.
@@ -635,14 +804,15 @@ void information()
  * \param x - Wspó³rzêdna x.
  * \param y - Wspó³rzêdna y. 
  * \param text - Tekst.
+ * \param font - Nazwa czcionki.
  */
-void showNotification(float x, float y, string text)
+void showNotification(float x, float y, string text, void* font)
 {
     glRasterPos2f(x, y);
     const char* txt = text.c_str();
     while (*txt != 0)
     {
-        glutBitmapCharacter(GLUT_BITMAP_9_BY_15, *txt);
+        glutBitmapCharacter(font, *txt);
         txt++;
     }
 }

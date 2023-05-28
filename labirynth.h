@@ -14,6 +14,7 @@
 #include <GL/glut.h>
 #include <windows.h>
 #include <iostream>
+#include <string>
 
 using namespace std;
 
@@ -23,18 +24,19 @@ using namespace std;
 #define  WIDTH 960
 #define  HEIGHT 540
 
-void Display();
 void Init();
-void processSpecialKeys(int, int, int);
+void Display();
+void Reload_TextView();
 void Keyboard(GLubyte , int , int );
+void processSpecialKeys(int, int, int);
 
-
-void startGame(int);
+void startGame();
 void drawCube();
 void drawGround(GLuint&);
 void drawCircle(float, int);
 void loadTexture(const string&, GLuint&);
-void showNotification(float, float, string);
+void timer(int);
+void showNotification(float, float, string, void*);
 void information();
 
 #endif // !LABIRYNTH_H
